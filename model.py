@@ -5,11 +5,11 @@ np.set_printoptions(threshold=np.inf)
 def schedule(epoch):
     print(epoch)
     if epoch < 50:
-        return .1
+        return 1.
     elif (epoch < 100):
-        return .01
+        return .1
     elif epoch < 200:
-        return .001
+        return .01
     elif epoch < 300:
         return .0001
     else:
@@ -28,9 +28,13 @@ class Model():
         # x = tf.random.normal((1,9))                 #   模拟样本数据
         # print(x)
         self.model = tf.keras.Sequential([               #   定义全连接层结构
-            tf.keras.layers.BatchNormalization(axis=1 ),
-            
-            tf.keras.layers.Dense(9,activation='relu'),  
+            # tf.keras.layers.BatchNormalization(axis=1 ),
+            tf.keras.layers.Dense(1000,activation='relu'),  
+            tf.keras.layers.Dense(1000,activation='relu'),  
+            tf.keras.layers.Dense(1000,activation='relu'),  
+            # tf.keras.layers.BatchNormalization(axis=1 ),
+            tf.keras.layers.Dense(6,activation='relu'),  
+            # tf.keras.layers.BatchNormalization(axis=1 ),
             tf.keras.layers.Dense(3)                                    #   输出层不需要激活函数
         ])
         loss_fn = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
@@ -131,8 +135,10 @@ class Model():
         self.ytrain = y[:-test_num].astype("float64")
         self.xtest = x[-test_num:].astype("float64")
         self.ytest = y[-test_num:].astype("float64")
-        print(self.xtrain)
-        print(self.ytrain)
+        myPrint("xtrain",self.xtrain)
+        myPrint("ytrain",self.ytrain)
+        myPrint("xtest",self.xtest)
+        myPrint("ytest",self.ytest)
     
     def train(self):
         myPrint("self.xtrain",self.xtrain.shape)
@@ -144,8 +150,57 @@ class Model():
             for i in self.model.trainable_variables: 
                 print(i.name,i.shape)
 
+        # self.model.fit(self.xtrain,self.ytrain,epochs = 300,callbacks=callbacks_list)
         self.model.fit(self.xtrain,self.ytrain,epochs = 300,callbacks=callbacks_list)
+    def loadintergratedData(self):
+        raw_left = readXlsx("/data/zhoutianyi/direction/data/Integral_25sets/LeftTurn2_25.xlsx")
+        raw_right = readXlsx("/data/zhoutianyi/direction/data/Integral_25sets/RightTurn2_25.xlsx")
+        raw_straight = readXlsx("/data/zhoutianyi/direction/data/Integral_25sets/Straight_25.xlsx")
+        x_data = []
+        y_data = []
+        
 
+        left = np.array(raw_left)
+        left = left[1:,10:16]
+        myPrint("leftshape",left.shape[0])
+        right = np.array(raw_right)
+        right = right[1:,10:16]
+        myPrint("right",right.shape[0])
+        straight = np.array(raw_straight)
+        straight = straight[1:,10:16]
+        myPrint("straight",straight.shape[0])
+        totalnum = straight.shape[0]+right.shape[0]+left.shape[0]
+        myPrint("totol num ofdata",totalnum)
+
+        numPerStep = 25
+        numRound = (left.shape[0]+1)//(numPerStep+1)
+        print(numPerStep,numRound)
+
+        for y in range(0,numRound):
+            temp = []
+            for x in range(0,numPerStep):
+                temp.append(left[y*(numPerStep+1)+x])
+            x_data.append(temp)
+            y_data.append(0)
+
+        numRound = (right.shape[0]+1)//(numPerStep+1)
+        for y in range(0,numRound):
+            temp = []
+            for x in range(0,numPerStep):
+                temp.append(right[y*(numPerStep+1)+x])
+            x_data.append(temp)
+            y_data.append(1)
+
+        numRound = (straight.shape[0]+1)//(numPerStep+1)
+        for y in range(0,numRound):
+            temp = []
+            for x in range(0,numPerStep):
+                temp.append(straight[y*(numPerStep+1)+x])
+            x_data.append(temp)
+            y_data.append(2)
+        myPrint("x_data",np.array(x_data))
+        myPrint("y_data",np.array(y_data))
+        
     def eval(self):
         self.model.evaluate(self.xtest,  self.ytest, verbose=2)
 
@@ -153,6 +208,6 @@ class Model():
 
 if __name__ == "__main__":
     model = Model()
-    model.loaddata_intergrate()
-    model.train()
-    model.eval()
+    model.loadintergratedData()
+    # model.train()
+    # model.eval()

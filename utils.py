@@ -18,7 +18,7 @@ def intergrate(arr,padding):
     return np.array(ret)
                 
 def readXlsx(path):
-    workbook = load_workbook(path)    #找到需要xlsx文件的位置
+    workbook = load_workbook(path, data_only=True)    #找到需要xlsx文件的位置
     booksheet = workbook.active                 #获取当前活跃的sheet,默认是第一个sheet
 
     #如果想获取别的sheet页采取下面这种方式，先获取所有sheet页名，在通过指定那一页。
