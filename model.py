@@ -28,12 +28,14 @@ class Model():
         # x = tf.random.normal((1,9))                 #   模拟样本数据
         # print(x)
         self.model = tf.keras.Sequential([               #   定义全连接层结构
+
+            tf.keras.layers.Flatten(),
+            tf.keras.layers.BatchNormalization(axis=1 ),
+            tf.keras.layers.Dense(64,activation='relu'),  
+            tf.keras.layers.Dense(32,activation='relu'),  
+            tf.keras.layers.Dense(16,activation='relu'),  
             # tf.keras.layers.BatchNormalization(axis=1 ),
-            tf.keras.layers.Dense(1000,activation='relu'),  
-            tf.keras.layers.Dense(1000,activation='relu'),  
-            tf.keras.layers.Dense(1000,activation='relu'),  
-            # tf.keras.layers.BatchNormalization(axis=1 ),
-            tf.keras.layers.Dense(6,activation='relu'),  
+            tf.keras.layers.Dense(8,activation='relu'),  
             # tf.keras.layers.BatchNormalization(axis=1 ),
             tf.keras.layers.Dense(3)                                    #   输出层不需要激活函数
         ])
@@ -151,7 +153,8 @@ class Model():
                 print(i.name,i.shape)
 
         # self.model.fit(self.xtrain,self.ytrain,epochs = 300,callbacks=callbacks_list)
-        self.model.fit(self.xtrain,self.ytrain,epochs = 300,callbacks=callbacks_list)
+        self.model.fit(self.xtrain,self.ytrain,epochs = 500)
+
     def loadintergratedData(self):
         raw_left = readXlsx("/data/zhoutianyi/direction/data/Integral_25sets/LeftTurn2_25.xlsx")
         raw_right = readXlsx("/data/zhoutianyi/direction/data/Integral_25sets/RightTurn2_25.xlsx")
@@ -200,6 +203,20 @@ class Model():
             y_data.append(2)
         myPrint("x_data",np.array(x_data))
         myPrint("y_data",np.array(y_data))
+
+        x_data = np.array(x_data)
+        y_data = np.array(y_data)
+
+        state = np.random.get_state()
+        np.random.shuffle(x_data)
+        np.random.set_state(state)
+        np.random.shuffle(y_data)
+
+        test_num = 15
+        self.xtrain = x_data[:-test_num].astype("float64")
+        self.ytrain = y_data[:-test_num].astype("float64")
+        self.xtest = x_data[-test_num:].astype("float64")
+        self.ytest = y_data[-test_num:].astype("float64")
         
     def eval(self):
         self.model.evaluate(self.xtest,  self.ytest, verbose=2)
@@ -209,5 +226,5 @@ class Model():
 if __name__ == "__main__":
     model = Model()
     model.loadintergratedData()
-    # model.train()
-    # model.eval()
+    model.train()
+    model.eval()
