@@ -142,18 +142,7 @@ class Model():
         myPrint("xtest",self.xtest)
         myPrint("ytest",self.ytest)
     
-    def train(self):
-        myPrint("self.xtrain",self.xtrain.shape)
-        myPrint("self.ytrain",self.ytrain.shape)
-        self.model.fit(self.xtrain,self.ytrain,epochs = 1)
-        if(self.hasshow == False):
-            self.hasshow = True
-            print(self.model.summary()) 
-            for i in self.model.trainable_variables: 
-                print(i.name,i.shape)
-
-        # self.model.fit(self.xtrain,self.ytrain,epochs = 300,callbacks=callbacks_list)
-        self.model.fit(self.xtrain,self.ytrain,epochs = 500)
+    
 
     def loadintergratedData(self):
         raw_left = readXlsx("/data/zhoutianyi/direction/data/Integral_25sets/LeftTurn2_25.xlsx")
@@ -174,6 +163,9 @@ class Model():
         myPrint("straight",straight.shape[0])
         totalnum = straight.shape[0]+right.shape[0]+left.shape[0]
         myPrint("totol num ofdata",totalnum)
+
+        _ = input("press enter to continue...")
+        
 
         numPerStep = 25
         numRound = (left.shape[0]+1)//(numPerStep+1)
@@ -201,8 +193,10 @@ class Model():
                 temp.append(straight[y*(numPerStep+1)+x])
             x_data.append(temp)
             y_data.append(2)
-        myPrint("x_data",np.array(x_data))
-        myPrint("y_data",np.array(y_data))
+        myPrint("x_data",len(x_data))
+        myPrint("y_data",len(y_data))
+
+        _ = input("press enter to continue...")
 
         x_data = np.array(x_data)
         y_data = np.array(y_data)
@@ -212,19 +206,128 @@ class Model():
         np.random.set_state(state)
         np.random.shuffle(y_data)
 
-        test_num = 15
+        test_num = 10
+        self.xtrain = np.append(self.xtrain,x_data[:-test_num].astype("float64"),0)
+        self.ytrain = np.append(self.ytrain,y_data[:-test_num].astype("float64"),0)
+        self.xtest = np.append(self.xtest,x_data[-test_num:].astype("float64"),0)
+        self.ytest = np.append(self.ytest,y_data[-test_num:].astype("float64"),0)
+
+
+    def loadintergratedData2(self):
+        raw_left = readXlsx("/data/zhoutianyi/direction/data/Integral_30sets/LeftTurn30.xlsx")
+        raw_right = readXlsx("/data/zhoutianyi/direction/data/Integral_30sets/RightTurn30.xlsx")
+        raw_straight = readXlsx("/data/zhoutianyi/direction/data/Integral_30sets/Straight30Forward.xlsx")
+        raw_left2 = readXlsx("/data/zhoutianyi/direction/data/Integral_30sets/LeftTurn30Nonuniform.xlsx")
+        raw_right2 = readXlsx("/data/zhoutianyi/direction/data/Integral_30sets/RightTurn30Nonuniform.xlsx")
+        raw_straight2 = readXlsx("/data/zhoutianyi/direction/data/Integral_30sets/Straight30Backward.xlsx")
+        x_data = []
+        y_data = []
+        
+
+        left = np.array(raw_left)
+        left = left[1:,10:16]
+        left = np.append(left,np.array([[None,None,None,None,None,None]]),0)
+        left = np.append(left,np.array(raw_left2)[1:,10:16],0)
+        myPrint("leftshape",left.shape[0])
+
+        right = np.array(raw_right)
+        right = right[1:,10:16]
+        right = np.append(right,np.array([[None,None,None,None,None,None]]),0)
+        right = np.append(right,np.array(raw_right2)[1:,10:16],0)
+        myPrint("right",right.shape[0])
+
+        straight = np.array(raw_straight)
+        straight = straight[1:,10:16]
+        straight = np.append(straight,np.array([[None,None,None,None,None,None]]),0)
+        straight = np.append(straight,np.array(raw_straight2)[1:,10:16],0)
+        myPrint("straight",straight.shape[0])
+
+
+
+
+        totalnum = straight.shape[0]+right.shape[0]+left.shape[0]
+        myPrint("totol num ofdata",totalnum)
+
+        _ = input("press enter to continue...")
+        
+
+        numPerStep = 25
+        numRound = (left.shape[0]+1)//(numPerStep+1)
+        print(numPerStep,numRound)
+
+        for y in range(0,numRound):
+            temp = []
+            for x in range(0,numPerStep):
+                temp.append(left[y*(numPerStep+1)+x])
+            x_data.append(temp)
+            y_data.append(0)
+
+        numRound = (right.shape[0]+1)//(numPerStep+1)
+        for y in range(0,numRound):
+            temp = []
+            for x in range(0,numPerStep):
+                temp.append(right[y*(numPerStep+1)+x])
+            x_data.append(temp)
+            y_data.append(1)
+
+        numRound = (straight.shape[0]+1)//(numPerStep+1)
+        for y in range(0,numRound):
+            temp = []
+            for x in range(0,numPerStep):
+                temp.append(straight[y*(numPerStep+1)+x])
+            x_data.append(temp)
+            y_data.append(2)
+        # myPrint("x_data",np.array(x_data))
+        # myPrint("y_data",np.array(y_data))
+
+        myPrint("x_data",len(x_data))
+        myPrint("y_data",len(y_data))
+
+        _ = input("press enter to continue...")
+
+        x_data = np.array(x_data)
+        y_data = np.array(y_data)
+
+        state = np.random.get_state()
+        np.random.shuffle(x_data)
+        np.random.set_state(state)
+        np.random.shuffle(y_data)
+
+        test_num = 30
         self.xtrain = x_data[:-test_num].astype("float64")
-        self.ytrain = y_data[:-test_num].astype("float64")
+        self.ytrain =y_data[:-test_num].astype("float64")
         self.xtest = x_data[-test_num:].astype("float64")
         self.ytest = y_data[-test_num:].astype("float64")
+    def train(self):
+        if(True):
+            myPrint("self.xtrain",self.xtrain)
+            myPrint("self.ytrain",self.ytrain)
+
+        _ = input("press enter to continue...")
+        self.model.fit(self.xtrain,self.ytrain,epochs = 1)
+        if(self.hasshow == False):
+            self.hasshow = True
+            print(self.model.summary()) 
+            for i in self.model.trainable_variables: 
+                print(i.name,i.shape)
+
+        _ = input("press enter to continue...")
+        # self.model.fit(self.xtrain,self.ytrain,epochs = 300,callbacks=callbacks_list)
+        self.model.fit(self.xtrain,self.ytrain,epochs = 500)
         
     def eval(self):
+
+        if(True):
+            myPrint("self.xtest",self.xtest)
+            myPrint("self.ytest",self.ytest)
+        _ = input("press enter to continue...")
         self.model.evaluate(self.xtest,  self.ytest, verbose=2)
 
     
 
 if __name__ == "__main__":
     model = Model()
+    model.loadintergratedData2()
     model.loadintergratedData()
     model.train()
     model.eval()
